@@ -4,7 +4,7 @@ import random
 class StudentAgent(RandomAgent):
     def __init__(self, name):
         super().__init__(name)
-        self.MaxDepth = 1
+        self.MaxDepth = 3
 
 
     def get_move(self, board):
@@ -87,6 +87,73 @@ class StudentAgent(RandomAgent):
             next_state(turn)
             winner()
         """
-				
-        return random.uniform(0, 1)
+        opponent = (self.id % 2) + 1
+        last_player = board.get_cell_value(board.last_move[0], board.last_move[1])
+        if last_player != self.id:
+            current_player = opponent
+            other_player = self.id
+        else:
+            current_player = self.id
+            other_player = opponent
+        values = []
+        for direction in range(1,5): # 1, 2, 3, 4 refers to down, down-right, right, up
+            for i in range(0, board.width):
+                for j in range(0, board.height):
+                    tokens = self.get_tokens(board, direction, i, j)
+                    if tokens:
+                        values.append(self.check_tokens(tokens, current_player, other_player))
+        value = 0.0
+        for v in values:
+            if v == board.num_to_connect:
+                return 99
+            if v == 0:
+                continue
+            value += (0.001**(1.0*(board.num_to_connect - v)))
+        print(board.last_move, current_player, value)
+        return value
+
+    def get_tokens(self, board, direction, x, y):
+        # check if the set is within the board
+        num_to_connect = board.num_to_connect
+        tokens = []
+        if direction == 1:
+            if y + num_to_connect > board.height:
+                return []
+            else:
+                for j in range(y, y + num_to_connect):
+                    tokens.append(board.get_cell_value(j, x))
+        elif direction == 2:
+            if x + num_to_connect > board.width or\
+               y + num_to_connect > board.height:
+               return []
+            else:
+                for i in range(0, num_to_connect):
+                    tokens.append(board.get_cell_value(y + i, x + i))
+        elif direction == 3:
+            if x + num_to_connect > board.width:
+               return []
+            else:
+                for i in range(x, x + num_to_connect):
+                    tokens.append(board.get_cell_value(y, i))
+        elif direction == 4:
+            if x + num_to_connect > board.width or\
+               y - num_to_connect <= -1:
+               return []
+            else:
+                for j in range(0, num_to_connect):
+                    tokens.append(board.get_cell_value(y - j, x + j))
+        return tokens
+
+    def check_tokens(self, tokens, current_player, other_player):
+        """
+        Counts the number of tokens in a row, ignoring spaces.
+        Returns 0 if there's an opponent's piece.
+        """
+        value = 0
+        for token in tokens:
+            if token == other_player:
+                return 0
+            elif token == current_player:
+                value += 1
+        return value
 

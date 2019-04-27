@@ -45,7 +45,7 @@ class Board(object):
         0 -> Empty
         """
         if row >= self.height or col >= self.width:
-            raise ValueError('({}, {}) is an invalid location on the board')
+            raise ValueError('({}, {}) is an invalid location on the board'.format(row, col))
 
         return self.board[row][col]
 
