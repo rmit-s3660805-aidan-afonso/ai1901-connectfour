@@ -5,6 +5,7 @@ class StudentAgent(RandomAgent):
     def __init__(self, name):
         super().__init__(name)
         self.MaxDepth = 3
+        self.opponent = self.id % 2 + 1
 
 
     def get_move(self, board):
@@ -40,7 +41,7 @@ class StudentAgent(RandomAgent):
 
         for move in valid_moves:
             if depth % 2 == 1:
-                next_state = board.next_state(self.id % 2 + 1, move[1])
+                next_state = board.next_state(self.opponent, move[1])
             else:
                 next_state = board.next_state(self.id, move[1])
                 
@@ -87,29 +88,20 @@ class StudentAgent(RandomAgent):
             next_state(turn)
             winner()
         """
-        opponent = (self.id % 2) + 1
-        last_player = board.get_cell_value(board.last_move[0], board.last_move[1])
-        if last_player != self.id:
-            current_player = opponent
-            other_player = self.id
-        else:
-            current_player = self.id
-            other_player = opponent
+        
         values = []
         for direction in range(1,5): # 1, 2, 3, 4 refers to down, down-right, right, up
             for i in range(0, board.width):
                 for j in range(0, board.height):
                     tokens = self.get_tokens(board, direction, i, j)
                     if tokens:
-                        values.append(self.check_tokens(tokens, current_player, other_player))
+                        values.append(self.check_tokens(tokens))
         value = 0.0
         for v in values:
-            if v == board.num_to_connect:
-                return 99
-            if v == 0:
-                continue
-            value += (0.001**(1.0*(board.num_to_connect - v)))
-        print(board.last_move, current_player, value)
+            if v < 0:
+                value -= (0.001**(1.0*(board.num_to_connect + v)))
+            if v > 0:
+                value += (0.001**(1.0*(board.num_to_connect - v)))
         return value
 
     def get_tokens(self, board, direction, x, y):
@@ -144,16 +136,26 @@ class StudentAgent(RandomAgent):
                     tokens.append(board.get_cell_value(y - j, x + j))
         return tokens
 
-    def check_tokens(self, tokens, current_player, other_player):
+    def check_tokens(self, tokens):
         """
         Counts the number of tokens in a row, ignoring spaces.
         Returns 0 if there's an opponent's piece.
         """
         value = 0
+        allied = False
+        enemy = False
         for token in tokens:
-            if token == other_player:
-                return 0
-            elif token == current_player:
-                value += 1
+            if token == self.id:
+                allied = True
+                if enemy:
+                    return 0
+                else:
+                    value += 1
+            elif token == self.opponent:
+                enemy = True
+                if allied:
+                    return 0
+                else:
+                    value -= 1
         return value
 
