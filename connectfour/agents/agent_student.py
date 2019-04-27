@@ -5,7 +5,7 @@ class StudentAgent(RandomAgent):
     def __init__(self, name):
         super().__init__(name)
         self.MaxDepth = 3
-        self.opponent = self.id % 2 + 1
+        self.opponent = -1
 
 
     def get_move(self, board):
@@ -16,7 +16,7 @@ class StudentAgent(RandomAgent):
         Returns:
             A tuple of two integers, (row, col)
         """
-
+        self.opponent = (self.id % 2) + 1
         valid_moves = board.valid_moves()
         vals = []
         moves = []
