@@ -34,7 +34,12 @@ class StudentAgent(RandomAgent):
         
         if depth == self.MaxDepth:
             return self.evaluateBoardState(board)
-
+        winner = board.winner()
+        if winner == self.id:
+            return 1
+        if winner == self.opponent:
+            return -1
+        
         valid_moves = board.valid_moves()
         vals = []
         moves = []
@@ -98,6 +103,10 @@ class StudentAgent(RandomAgent):
                         values.append(self.check_tokens(tokens))
         value = 0.0
         for v in values:
+            if v == board.num_to_connect:
+                return 1
+            if v == -board.num_to_connect:
+                return -1
             if v < 0:
                 value -= (0.001**(1.0*(board.num_to_connect + v)))
             if v > 0:
