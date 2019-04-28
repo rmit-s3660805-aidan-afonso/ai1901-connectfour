@@ -4,7 +4,7 @@ import random
 class StudentAgent(RandomAgent):
     def __init__(self, name):
         super().__init__(name)
-        self.MaxDepth = 3
+        self.MaxDepth = 4
         self.opponent = -1
 
 
@@ -24,12 +24,12 @@ class StudentAgent(RandomAgent):
         for move in valid_moves:
             next_state = board.next_state(self.id, move[1])
             moves.append( move )
-            vals.append( self.dfMiniMax(next_state, 1) )
+            vals.append( self.dfMiniMax(next_state, 1, -1, 1) )
 
         bestMove = moves[vals.index( max(vals) )]
         return bestMove
 
-    def dfMiniMax(self, board, depth):
+    def dfMiniMax(self, board, depth, a, b):
         # Goal return column with maximized scores of all possible next states
         
         if depth == self.MaxDepth:
@@ -39,27 +39,34 @@ class StudentAgent(RandomAgent):
             return 1
         if winner == self.opponent:
             return -1
+
+        if depth % 2 == 1:
+            maximise = False
+        else:
+            maximise = True
         
         valid_moves = board.valid_moves()
         vals = []
-        moves = []
-
-        for move in valid_moves:
-            if depth % 2 == 1:
-                next_state = board.next_state(self.opponent, move[1])
-            else:
+        if maximise:
+            value = -1
+            for move in valid_moves:
                 next_state = board.next_state(self.id, move[1])
-                
-            moves.append( move )
-            vals.append( self.dfMiniMax(next_state, depth + 1) )
-
-        
-        if depth % 2 == 1:
-            bestVal = min(vals)
+                value = max(value, self.dfMiniMax(next_state, depth + 1, a, b))
+                vals.append(value)
+                a = max(a, value)
+                if a >= b:
+                    break
+            return max(vals)
         else:
-            bestVal = max(vals)
-
-        return bestVal
+            value = 1
+            for move in valid_moves:
+                next_state = board.next_state(self.opponent, move[1])
+                value = min(value, self.dfMiniMax(next_state, depth + 1, a, b))
+                vals.append(value)
+                b = min(b, value)
+                if a >= b:
+                    break
+            return min(vals)
 
     def evaluateBoardState(self, board):
         """
